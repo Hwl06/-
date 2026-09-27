@@ -1,0 +1,42 @@
+name: Build Mac App
+
+# 触发条件：当代码推送到仓库时，或手动点击 Actions 按钮运行
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # 这允许你手动点击按钮来触发打包
+
+jobs:
+  build:
+    # 关键：指定服务器使用最新的 macOS 系统[reference:0]
+    runs-on: macos-latest
+
+    steps:
+    # 1. 检出（拉取）当前仓库代码
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. 搭建 Python 3.12 环境[reference:1]
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    # 3. 安装项目依赖库[reference:2]
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install PySide6 pyinstaller
+
+    # 4. 执行 PyInstaller 打包[reference:3]
+    - name: Build with PyInstaller
+      run: |
+        # 注意：macOS 上打包 .app 文件时，不需要 --onefile 参数
+        pyinstaller --windowed --name "BatteryHealth" battery_gui.py
+
+    # 5. 上传打包好的 .app 文件，供你下载[reference:4]
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: BatteryHealth-macOS
+        path: dist/BatteryHealth.app
